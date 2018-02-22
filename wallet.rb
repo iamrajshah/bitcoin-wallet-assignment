@@ -8,6 +8,7 @@ require_relative 'bitcoinrpc.rb'
 
 $bitcoinRpc = BitcoinRPC.new('http://rajesh:jab_raj_meets_satoshi@127.0.0.1:18332')
 $BTC = 100000000 #satoshi
+$FEE = 1000
 
 def helpFunction
 	puts "==========================HELP Section==================================================="
@@ -129,7 +130,7 @@ def sendtoaddress(previousTxId,voutOfPtx,toAddresss,amount)
 	previousTxData=previousTxData["hex"].to_s
 	previousTx=Bitcoin::P::Tx.new(previousTxData.htb)
 	#p previousTx
-	amountToBeTransfer=($BTC * amount) + 50000
+	amountToBeTransfer=($BTC * amount) + $FEE
 	previousTxBalance=($BTC * previousTxValue["value"])
 	#p amountToBeTransfer
 	#p previousTxBalance
@@ -141,8 +142,8 @@ def sendtoaddress(previousTxId,voutOfPtx,toAddresss,amount)
 	else #yes we can transfer
 		
 		keyOfPreviousAddress=Bitcoin::Key.from_base58($bitcoinRpc.dumpprivkey(previousTxValue["scriptPubKey"]["addresses"][0]))
-		amountToBeTransfer-=50000
-		remainingBalance=previousTxBalance-amountToBeTransfer-50000
+		amountToBeTransfer-=$FEE
+		remainingBalance=previousTxBalance-amountToBeTransfer-$FEE
 		#p remainingBalance
 		tx_to_transfer_account=build_tx do |t|
 			t.input do |i|
@@ -172,12 +173,6 @@ def sendtoaddress(previousTxId,voutOfPtx,toAddresss,amount)
 	end
 end
 
-def is_number? string
-	true if Float(string) rescue false
-end
-
-
-
 def sendtomultisig(previousTxId,voutOfPtx,amount,*mulSigAddresss)
 	#considering all inputs are valid
 	#now check is their enough amount in that UTXO
@@ -187,11 +182,11 @@ def sendtomultisig(previousTxId,voutOfPtx,amount,*mulSigAddresss)
 	previousTxData=previousTxData["hex"].to_s
 	previousTx=Bitcoin::P::Tx.new(previousTxData.htb)
 	#p previousTx
-	amountToBeTransfer=($BTC * amount) + 50000
+	amountToBeTransfer=($BTC * amount) 
 	previousTxBalance=($BTC * previousTxValue["value"])
 	#p amountToBeTransfer
 	#p previousTxBalance
-	if previousTxBalance < amountToBeTransfer #insufficient fund
+	if previousTxBalance < (amountToBeTransfer + $FEE) #insufficient fund
 		puts "In-sufficient fund in UTXO"
 	else #yes we can transfer
 		#create a transaction to send to multisig address
@@ -215,8 +210,8 @@ def sendtomultisig(previousTxId,voutOfPtx,amount,*mulSigAddresss)
 		#p ({ dump_script_pubkey: Bitcoin::Script.new(script_pubkey).to_string })
 
 		keyOfPreviousAddress=Bitcoin::Key.from_base58($bitcoinRpc.dumpprivkey(previousTxValue["scriptPubKey"]["addresses"][0]))
-		amountToBeTransfer-=50000
-		remainingBalance=previousTxBalance-amountToBeTransfer-50000
+		#amountToBeTransfer-=$FEE
+		remainingBalance=previousTxBalance-amountToBeTransfer-$FEE
 
 		tx = Bitcoin::Protocol::Tx.new
 
@@ -265,13 +260,13 @@ def redemtoaddress(previousTxId,voutOfPtx,amount,toAddresss)
 		listOfPublicKeys.push((listOfPrivateKeys["#{counter}"].pub))
 	end
 	script_pubkey = Bitcoin::Script.to_multisig_script(1, *listOfPublicKeys)
-	amountToBeTransfer=($BTC * amount) + 50000
+	amountToBeTransfer=($BTC * amount) 
 	previousTxBalance=($BTC * previousTxValue["value"])
-	if previousTxBalance < amountToBeTransfer #insufficient fund
+	if previousTxBalance < (amountToBeTransfer + $FEE) #insufficient fund
 		puts "In-sufficient fund in UTXO"
 	else #yes we can transfer
-		amountToBeTransfer-=50000
-		remainingBalance=previousTxBalance-amountToBeTransfer-50000
+		#amountToBeTransfer-=$FEE
+		remainingBalance=previousTxBalance-amountToBeTransfer-$FEE
 		tx=Bitcoin::Protocol::Tx.new
 
 		tx_in=Bitcoin::Protocol::TxIn.from_hex_hash(previousTxId,voutOfPtx)
@@ -296,6 +291,30 @@ def redemtoaddress(previousTxId,voutOfPtx,amount,toAddresss)
 
 	end	
 end	
+
+def validateInput(txid, vout, amnt, *addr)	
+
+	if !is_number? amnt
+		return ({"Runtime-Error" => "Invalid amount #{amnt}"})
+	end
+	if !is_integer? vout	
+		return ({"Runtime-Error" => "Invalid vout index #{vout}"})
+	end
+	addr.each do |elementOfAddress|
+		if !Bitcoin.valid_address? elementOfAddress	
+			return ({"Runtime-Error" => "Invalid bitcoin address #{elementOfAddress}"})
+		end
+	end	
+	return {}
+end
+
+def is_integer? string
+	true if (Integer(string) && string.to_i >=0) rescue false
+end
+
+def is_number? string
+	true if Float(string) rescue false
+end
 
 if ARGV.length>0
 	
@@ -349,21 +368,15 @@ if ARGV.length>0
 			if ARGV.length<4
 				puts "Invalid argument-list with \'sendtoaddress\' command please try running\n\'ruby wallet.rb sendtoaddress _UnspentTXID_ _vout_ _Amount_ _ToAddress_ \'"
 			else
-				if !Bitcoin.valid_address? ARGV[4]  
-					puts "Invalid bitcoin address"
-				elsif !is_number? ARGV[3]
-					puts "Invalid amount"
-				elsif !is_number? ARGV[2] 
-					puts "Invalid vout"
-				else
+				checkValidation=validateInput(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,ARGV[4])
+				if checkValidation=={}
 					sendtoaddress(ARGV[1],ARGV[2].to_i,ARGV[4],ARGV[3].to_f)
-					
-					
+				else
+					p checkValidation
 				end	
 			end	
 		when "sendtomultisig"
-			#p ARGV.length
-			#p ARGV
+			
 			if ARGV.length<4
 				puts "Invalid argument-list with \'sendtomultisig\' command please try running\n\'ruby wallet.rb sendtomultisig _UnspentTXID_ _vout_ _Amount_ _Address1_..._AddressN \'"
 			else 
@@ -371,20 +384,28 @@ if ARGV.length>0
 				for i in 4..(ARGV.length-1) do
 					listofaddresses << ARGV[i]
 				end
-				puts listofaddresses
-				sendtomultisig(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,*listofaddresses)	
+				checkValidation=validateInput(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,*listofaddresses)
+				p checkValidation
+				if checkValidation=={}
+					sendtomultisig(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,*listofaddresses)
+				else
+					p checkValidation
+				end	
+					
 			end	
 		when "redemtoaddress"
 			if ARGV.length<4
 				puts "Invalid argument-list with \'redeemtoaddress\' command please try running\n\'ruby wallet.rb redeemtoaddress _UnspentTXID_ _vout_ _Amount_ _Address_ \'"
 			else
-				redemtoaddress(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,ARGV[4])
-				#p ARGV	
+				checkValidation=validateInput(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,ARGV[4])
+				if checkValidation=={}
+					redemtoaddress(ARGV[1],ARGV[2].to_i,ARGV[3].to_f,ARGV[4])	
+				else
+					p checkValidation
+				end	
 			end	
 		else puts"Sorry !!! You mis-spelled command, if you need any help try running\n\'ruby wallet.rb help\'"
 	end #case end
 else 
 	puts"Sorry !!! You forgot to send command, if you need any help try running\n\'ruby wallet.rb help\'"
 end #if end
-
-
