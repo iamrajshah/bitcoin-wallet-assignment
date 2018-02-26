@@ -1,18 +1,16 @@
 require 'net/http'
 require 'uri'
 require 'json'
- 
+
 class BitcoinRPC
-  
   def initialize(service_url)
     @uri = URI.parse(service_url)
-    #puts "URL to connect: " + @uri.to_s
-    #puts @uri
   end
  
   def method_missing(name, *args)
-    post_body = { 'method' => name, 'params' => args, 'id' => 'jsonrpc' }.to_json
-    resp = JSON.parse( http_post_request(post_body) )
+    post_body =
+    { 'method' => name, 'params' => args, 'id' => 'jsonrpc' }.to_json
+    resp = JSON.parse(http_post_request(post_body))
     raise JSONRPCError, resp['error'] if resp['error']
     resp['result']
   end
@@ -25,7 +23,6 @@ class BitcoinRPC
     request.body = post_body
     http.request(request).body
   end
- 
   class JSONRPCError < RuntimeError; end
 end
  
