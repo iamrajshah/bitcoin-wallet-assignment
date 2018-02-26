@@ -1,13 +1,19 @@
 # to display help to user
 def help
-  puts '===================================HELP Section============================================'
-  puts '1. listutxo - will list all the UTXO in the longest chain of blocks.\ncmd:\'ruby wallet.rb listutxo\''
-  puts '2. generatekey - will generate new address & keys.\ncmd:\'ruby wallet.rb generatekey\''
-  puts '3. listkey - will list all the addresses with their keys on console.\ncmd:\'ruby wallet.rb listkey\''
-  puts '4. sendtoaddress - will send the amount(in BTC) to address.\ncmd:\'ruby wallet.rb sendtoaddress _UnspentTXID_ _vout_ _Amount_ _ToAddress_\''
-  puts '5. sendtomultisig - will send the amount(in BTC) to multisig-address.\ncmd:\'ruby wallet.rb sendtomultisig _UnspentTXID_ _vout_ _Amount_ _Address1_..._AddressN_\''
-  puts '6. redemtoaddress - will send the amount(in BTC) to address from multisig-address.\ncmd:\'ruby wallet.rb redemtoaddress _UnspentMultiSigTXID_ _vout_ _Amount_ _ToAddress_\''
-  puts '=========================================================================================='
+  puts '===================================HELP Section========================'
+  puts '1. listutxo - will list all the UTXO in the longest chain of blocks.'
+  puts 'cmd:\'ruby wallet.rb listutxo\''
+  puts '2. generatekey - will generate new address & keys.'
+  puts 'cmd:\'ruby wallet.rb generatekey\''
+  puts '3. listkey - will list all the addresses with their keys on console.'
+  puts 'cmd:\'ruby wallet.rb listkey\''
+  puts '4. sendtoaddress - will send the amount(in BTC) to address.'
+  puts 'cmd:\'ruby wallet.rb sendtoaddress UTXO vout Amount  ToAddr\''
+  puts '5. sendtomultisig - will send the amount(in BTC) to multisig-address.'
+  puts 'cmd:\'ruby wallet.rb sendtomultisig UTXO vout Amount addr1...addrN\''
+  puts '6. redemtoaddress - will send the amount(in BTC) from multisig-address.'
+  puts 'cmd:\'ruby wallet.rb redemtoaddress _UTXO(multisig) vout amount addr\''
+  puts '======================================================================='
 end
 
 # to get all UTXO of our wallet
@@ -31,7 +37,6 @@ def all_utxo
           'vout_index' => vin['vout']
         }
         spent_transactions << input_transaction
-      
       }
         transaction['vout'].each { |vout|
         next if vout['scriptPubKey']['addresses'].nil?
@@ -109,23 +114,32 @@ def send_to_address(prev_tx_id, vout_prev_tx, to_address, amount)
     previous_transaction_vout = vout_prev_tx
     payee_address = to_address
     transfer_amount = bitcoin_to_satoshi(amount)
-    previous_transaction_hex = BITCOIN_RPC.getrawtransaction(previous_transaction_id)
-    previous_transaction = Bitcoin::Protocol::Tx.new(previous_transaction_hex.htb)
-    previous_transaction_balance = previous_transaction.out[previous_transaction_vout].value
-    previous_transaction_address = previous_transaction.out[previous_transaction_vout].parsed_script.get_address
+    previous_transaction_hex =
+    BITCOIN_RPC.getrawtransaction(previous_transaction_id)
+    previous_transaction =
+    Bitcoin::Protocol::Tx.new(previous_transaction_hex.htb)
+    previous_transaction_balance =
+    previous_transaction.out[previous_transaction_vout].value
+    previous_transaction_address =
+    previous_transaction.out[previous_transaction_vout].parsed_script.get_address
     key = key_object_for_address(previous_transaction_address)
     change_amount = (previous_transaction_balance - transfer_amount - FEE)
     change_address = previous_transaction_address
     new_transaction = Bitcoin::Protocol::Tx.new
-    transaction_input = Bitcoin::Protocol::TxIn.from_hex_hash(previous_transaction_id, previous_transaction_vout)
+    transaction_input =
+    Bitcoin::Protocol::TxIn.from_hex_hash(previous_transaction_id, previous_transaction_vout)
     new_transaction.add_in(transaction_input)
-    transaction_output_payee = Bitcoin::Protocol::TxOut.value_to_address(transfer_amount, payee_address)
-    transaction_output_remaining = Bitcoin::Protocol::TxOut.value_to_address(change_amount, change_address)
+    transaction_output_payee =
+    Bitcoin::Protocol::TxOut.value_to_address(transfer_amount, payee_address)
+    transaction_output_remaining =
+    Bitcoin::Protocol::TxOut.value_to_address(change_amount, change_address)
     new_transaction.add_out(transaction_output_payee)
     new_transaction.add_out(transaction_output_remaining)
-    signature_hash = new_transaction.signature_hash_for_input(0, previous_transaction)
+    signature_hash =
+    new_transaction.signature_hash_for_input(0, previous_transaction)
     signature = key.sign(signature_hash)
-    script_sig = Bitcoin::Script.to_signature_pubkey_script(signature, key.pub.htb)
+    script_sig =
+    Bitcoin::Script.to_signature_pubkey_script(signature, key.pub.htb)
     new_transaction.in[0].script_sig = script_sig
     # puts new_transaction.to_payload.bth
     # Code to verify input signature
@@ -144,32 +158,43 @@ def redem_to_address(previous_tx_id, vout_prev_tx, amount,to_address)
     previous_transaction_id = previous_tx_id
     previous_transaction_vout = vout_prev_tx
     transfer_amount = bitcoin_to_satoshi(amount)
-    previous_transaction_hex = BITCOIN_RPC.getrawtransaction(previous_transaction_id)
-    previous_transaction = Bitcoin::Protocol::Tx.new(previous_transaction_hex.htb)
+    previous_transaction_hex =
+    BITCOIN_RPC.getrawtransaction(previous_transaction_id)
+    previous_transaction =
+    Bitcoin::Protocol::Tx.new(previous_transaction_hex.htb)
     puts JSON.pretty_generate( previous_transaction )
-    previous_transaction_addresses = previous_transaction.out[previous_transaction_vout].parsed_script.get_addresses
+    previous_transaction_addresses =
+    previous_transaction.out[previous_transaction_vout].parsed_script.get_addresses
     # p previous_transaction.out[previous_transaction_vout]
     p previous_transaction_addresses
-    previous_transaction_balance = previous_transaction.out[previous_transaction_vout].value
-    min_signatures_required = previous_transaction.out[previous_transaction_vout].parsed_script.get_signatures_required
+    previous_transaction_balance =
+    previous_transaction.out[previous_transaction_vout].value
+    min_signatures_required =
+    previous_transaction.out[previous_transaction_vout].parsed_script.get_signatures_required
     previous_pubkeys = []
-    previous_keys=[]
+    previous_keys = []
     previous_transaction_addresses.each { |address|
     previous_key = key_object_for_address(address)
     previous_pubkeys << previous_key.pub
     previous_keys << previous_key
     }
     p *previous_pubkeys
-    multisig_script = Bitcoin::Script.to_multisig_script(min_signatures_required, *previous_pubkeys)
-    change_amount = (previous_transaction_balance - transfer_amount - FEE)
+    multisig_script =
+    Bitcoin::Script.to_multisig_script(min_signatures_required, *previous_pubkeys)
+    change_amount =
+    (previous_transaction_balance - transfer_amount - FEE)
     new_transaction = Bitcoin::Protocol::Tx.new
-    transaction_input = Bitcoin::Protocol::TxIn.from_hex_hash(previous_transaction_id, previous_transaction_vout)
+    transaction_input =
+    Bitcoin::Protocol::TxIn.from_hex_hash(previous_transaction_id, previous_transaction_vout)
     new_transaction.add_in(transaction_input)
-    transaction_output_payee = Bitcoin::Protocol::TxOut.value_to_address(transfer_amount, to_address)
-    transaction_output_remaining = Bitcoin::Protocol::TxOut.new(change_amount, multisig_script)
+    transaction_output_payee =
+    Bitcoin::Protocol::TxOut.value_to_address(transfer_amount, to_address)
+    transaction_output_remaining =
+    Bitcoin::Protocol::TxOut.new(change_amount, multisig_script)
     new_transaction.add_out(transaction_output_payee)
     new_transaction.add_out(transaction_output_remaining)
-    signature_hash = new_transaction.signature_hash_for_input(0, previous_transaction, Bitcoin::Script::SIGHASH_TYPE[:all])
+    signature_hash =
+    new_transaction.signature_hash_for_input(0, previous_transaction, Bitcoin::Script::SIGHASH_TYPE[:all])
     # p signature_hash
     previous_keys = previous_keys.reverse()
     key = previous_keys.shift()
@@ -184,7 +209,8 @@ def redem_to_address(previous_tx_id, vout_prev_tx, amount,to_address)
       # p signed_by_signature
       key = previous_keys.shift()
       signature = key.sign(signature_hash)
-      partially_signed = Bitcoin::Script.add_sig_to_multisig_script_sig(signature, partially_signed)
+      partially_signed =
+      Bitcoin::Script.add_sig_to_multisig_script_sig(signature, partially_signed)
       signed_by_signature += 1
     end
     # p partially_signed
@@ -194,7 +220,8 @@ def redem_to_address(previous_tx_id, vout_prev_tx, amount,to_address)
     # Uncomment following code to verify the signature
     # verify_transaction=Bitcoin::Protocol::Tx.new(new_transaction.to_payload)
     # p ({verify:verify_transaction.verify_input_signature(0,previous_transaction)})
-    transaction_id = BITCOIN_RPC.sendrawtransaction(new_transaction.to_payload.bth)
+    transaction_id =
+    BITCOIN_RPC.sendrawtransaction(new_transaction.to_payload.bth)
     return transaction_id
   rescue => ex
     puts ex.to_s
@@ -217,28 +244,38 @@ def send_to_multisig(previous_tx_id, vout_ptx, amount, *multi_sig_address)
     }
     # p payee_pubkeys
     multisig_script = Bitcoin::Script.to_multisig_script(2, *payee_pubkeys)
-    previous_transaction_hex = BITCOIN_RPC.getrawtransaction(previous_transaction_id)
-    previous_transaction = Bitcoin::Protocol::Tx.new(previous_transaction_hex.htb)
-    previous_transaction_balance = previous_transaction.out[previous_transaction_vout].value
-    previous_transaction_address = previous_transaction.out[previous_transaction_vout].parsed_script.get_address
+    previous_transaction_hex =
+    BITCOIN_RPC.getrawtransaction(previous_transaction_id)
+    previous_transaction =
+    Bitcoin::Protocol::Tx.new(previous_transaction_hex.htb)
+    previous_transaction_balance =
+    previous_transaction.out[previous_transaction_vout].value
+    previous_transaction_address =
+    previous_transaction.out[previous_transaction_vout].parsed_script.get_address
     key = key_object_for_address(previous_transaction_address)
     change_amount = (previous_transaction_balance - transfer_amount - FEE)
     new_transaction = Bitcoin::Protocol::Tx.new
-    input_transaction = Bitcoin::Protocol::TxIn.from_hex_hash(previous_tx_id, previous_transaction_vout)
+    input_transaction =
+    Bitcoin::Protocol::TxIn.from_hex_hash(previous_tx_id, previous_transaction_vout)
     new_transaction.add_in(input_transaction)
-    output_to_multisig = Bitcoin::Protocol::TxOut.new(transfer_amount, multisig_script)
-    output_to_remaining = Bitcoin::Protocol::TxOut.value_to_address(change_amount, previous_transaction_address)
+    output_to_multisig =
+    Bitcoin::Protocol::TxOut.new(transfer_amount, multisig_script)
+    output_to_remaining =
+    Bitcoin::Protocol::TxOut.value_to_address(change_amount, previous_transaction_address)
     new_transaction.add_out(output_to_multisig)
     new_transaction.add_out(output_to_remaining)
-    signature_hash = new_transaction.signature_hash_for_input(0, previous_transaction, Bitcoin::Script::SIGHASH_TYPE[:all])
+    signature_hash =
+    new_transaction.signature_hash_for_input(0, previous_transaction, Bitcoin::Script::SIGHASH_TYPE[:all])
     signature = key.sign(signature_hash)
-    script_sig = Bitcoin::Script.to_signature_pubkey_script(signature,key.pub.htb, Bitcoin::Script::SIGHASH_TYPE[:all])
+    script_sig =
+    Bitcoin::Script.to_signature_pubkey_script(signature,key.pub.htb, Bitcoin::Script::SIGHASH_TYPE[:all])
     new_transaction.in[0].script_sig = script_sig
     # Uncomment following code to verify the signature
     # verify_transaction=Bitcoin::Protocol::Tx.new(new_transaction.to_payload)
     # p ({verify:verify_transaction.verify_input_signature(0,previous_transaction)})
     # p new_transaction.to_payload.bth
-    new_transaction_id = BITCOIN_RPC.sendrawtransaction(new_transaction.to_payload.bth)
+    new_transaction_id =
+    BITCOIN_RPC.sendrawtransaction(new_transaction.to_payload.bth)
     new_transaction_id
   rescue => ex
     puts ex.to_s

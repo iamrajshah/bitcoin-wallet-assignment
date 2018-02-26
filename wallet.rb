@@ -31,7 +31,8 @@ if !ARGV.empty?
     help
   when 'listutxo'
     if ARGV.length > 1
-      puts 'No argument with \'listutxo\' command please try running\n\'ruby wallet.rb listutxo\''
+      puts 'No argument with \'listutxo\' cmd please try running'
+      puts '\'ruby wallet.rb listutxo\''
     else
       listallutxo = all_utxo
       if listallutxo.size > 0
@@ -48,42 +49,50 @@ if !ARGV.empty?
     end
   when 'generatekey'
     if ARGV.length > 1
-      puts 'No argument with \'generatekey\' command please try running\n\'ruby wallet.rb listutxo\''
+      puts 'No argument with \'generatekey\' cmd please try running'
+      puts '\'ruby wallet.rb listutxo\''
     else
       generate_key
     end
   when 'listkey'
     if ARGV.length > 1
-      puts 'No argument with \'listkey\' command please try running\n\'ruby wallet.rb listutxo\''
+      puts 'No argument with \'listkey\' cmd please try running'
+      puts '\'ruby wallet.rb listutxo\''
     else
       list_key
     end
   when 'sendtoaddress'
     if ARGV.length < 4
-      puts 'Invalid argument-list with \'sendtoaddress\' command please try running\n\'ruby wallet.rb sendtoaddress _UnspentTXID_ _vout_ _Amount_ _ToAddress_ \''
+      puts 'Invalid argument-list with \'sendtoaddress\' cmd please try running'
+      puts '\'ruby wallet.rb sendtoaddress UnspentTXID vout Amount ToAddress\''
     else
       check_valid_parameter_list = valid_send_to_parameter_list(false, *ARGV)
       if check_valid_parameter_list['status']
         # puts 'validation are ok now going to send_to_address'
-        new_transaction_id = send_to_address(ARGV[1], ARGV[2].to_i, ARGV[4], ARGV[3].to_f)
-        puts "Transaction sent successfully.\nTransaction Id: #{new_transaction_id}"
+        new_transaction_id =
+        send_to_address(ARGV[1], ARGV[2].to_i, ARGV[4], ARGV[3].to_f)
+        puts 'Transaction sent successfully.'
+        puts "Transaction Id: #{new_transaction_id}"
       else
         puts JSON.pretty_generate(check_valid_parameter_list)
       end
     end
   when 'sendtomultisig'
     if ARGV.length < 4
-      puts "Invalid argument-list with \'sendtomultisig\' command please try running\n\'ruby wallet.rb sendtomultisig _UnspentTXID_ _vout_ _Amount_ _Address1_..._AddressN \'"
+      puts 'Invalid argument-list for \'sendtomultisig\' cmd please try running'
+      puts '\'ruby wallet.rb sendtomultisig UTXO vout amount addr1...addrN\''
     else
       validate_input = valid_multi_sig_parameter_list(*ARGV)
       if validate_input['status']
-        list_of_addresses = []
+        address_list = []
         for i in 4..(ARGV.length - 1) do
-          list_of_addresses << ARGV[i]
+          address_list << ARGV[i]
         end
-        new_transaction_id = send_to_multisig(ARGV[1], ARGV[2].to_i, ARGV[3].to_f, *list_of_addresses)
+        new_transaction_id =
+        send_to_multisig(ARGV[1], ARGV[2].to_i, ARGV[3].to_f, *address_list)
         if !new_transaction_id.nil?
-          puts "Transaction sent successfully! \nTransaction Id:#{new_transaction_id}"
+          puts 'Transaction sent successfully!' 
+          puts "Transaction Id: #{new_transaction_id}"
         else
           puts 'Transaction failed to send'
         end
@@ -93,13 +102,16 @@ if !ARGV.empty?
     end
   when 'redemtoaddress'
     if ARGV.length < 4
-      puts 'Invalid argument-list with \'redeemtoaddress\' command please try running\n\'ruby wallet.rb redeemtoaddress _UnspentMultisigTXID_ _vout_ _Amount_ _Address_ \''
+      puts 'Invalid argument-list for \'redeemtoaddress\' cmd please try runing'
+      puts '\'ruby wallet.rb redeemtoaddress UTXO(multisig) vout amount addr\''
     else
       check_valid_parameter_list = valid_send_to_parameter_list(true, *ARGV)
       if check_valid_parameter_list['status']
-        new_transaction_id = redem_to_address(ARGV[1], ARGV[2].to_i, ARGV[3].to_f, ARGV[4])
+        new_transaction_id =
+        redem_to_address(ARGV[1], ARGV[2].to_i, ARGV[3].to_f, ARGV[4])
         if !new_transaction_id.nil?
-          puts "Transaction sent successfully! \nTransaction Id: #{ new_transaction_id }"
+          puts 'Transaction sent successfully!'
+          puts "Transaction Id: #{new_transaction_id}"
         else
           puts 'Transaction failed to send over network'
         end
@@ -108,8 +120,10 @@ if !ARGV.empty?
       end
     end
   else
-    puts 'Sorry !!! You mis-spelled command, if you need any help try running\n\'ruby wallet.rb help\''
+    puts 'Sorry !!! You mis-spelled cmd, if you need any help try running'
+    puts '\n\'ruby wallet.rb help\''
   end
 else
-  puts 'Sorry !!! You forgot to send command, if you need any help try running\n\'ruby wallet.rb help\''
+  puts 'Sorry !!! You forgot to send cmd, if you need any help try running'
+  puts '\n\'ruby wallet.rb help\''
 end

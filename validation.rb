@@ -1,7 +1,8 @@
 # To validate send to parameter for
 def valid_send_to_parameter_list(is_redem, *param_data)
   response = {}
-  transaction_info = transaction_info_from_utxo(param_data[1], param_data[2].to_i)
+  transaction_info =
+  transaction_info_from_utxo(param_data[1], param_data[2].to_i)
   #p transaction_info
   begin
     # to check valid address
@@ -22,7 +23,8 @@ def valid_send_to_parameter_list(is_redem, *param_data)
     # to check valid amount entered by user
     # p bitcoin_to_satoshi ( transaction_info[:value] )
     # p ( bitcoin_to_satoshi( param_data[3].to_f ) + FEE )
-    if bitcoin_to_satoshi(transaction_info['value']) < (bitcoin_to_satoshi(param_data[3].to_f) + FEE)
+    if bitcoin_to_satoshi(transaction_info['value']) < \
+       (bitcoin_to_satoshi(param_data[3].to_f) + FEE)
       response['error'] = 'Insufficient balance in UTXO'
       return response
     end
@@ -72,7 +74,8 @@ def valid_multi_sig_parameter_list(*param_data)
       response['error'] = 'vout is invalid for this transaction id'
       return response
     end
-    if bitcoin_to_satoshi(transaction_info['value']) < (bitcoin_to_satoshi(param_data[3].to_f) + FEE)
+    if bitcoin_to_satoshi(transaction_info['value']) < \
+       (bitcoin_to_satoshi(param_data[3].to_f) + FEE)
       response['error'] = 'Insufficient balance in UTXO'
       return response
     end	
