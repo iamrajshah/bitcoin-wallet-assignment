@@ -29,11 +29,3 @@ class BitcoinRPC
   class JSONRPCError < RuntimeError; end
 end
  
-#if $0 == __FILE__
-#  h = BitcoinRPC.new('http://rajesh:jab_raj_meets_satoshi@127.0.0.1:18332')
-#  p h.getbalance
-#  p h.getinfo
-  #p h.getnewaddress
-  #p h.dumpprivkey( h.getnewaddress )
-  # also see: https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_Calls_list
-#end

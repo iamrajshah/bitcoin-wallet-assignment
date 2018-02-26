@@ -1,4 +1,4 @@
-# wallet created by raj21
+# wallet created by Rajesh Shah
 # GitHub Link: https://github.com/Rajesh21/bitcoin-wallet-assignment
 require 'bitcoin'
 require 'json'
@@ -16,7 +16,7 @@ require_relative 'helper_functions.rb'
 
 # Global variable used overall file
 BITCOIN_RPC =
-BitcoinRPC.new('http://rajesh:jab_raj_meets_satoshi@127.0.0.1:18332')
+BitcoinRPC.new('http://rpcusername:rpcpassword@127.0.0.1:18332')
 # satoshi
 BTC = 1_000_000_00
 # mention in assignment
