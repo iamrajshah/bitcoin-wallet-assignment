@@ -109,10 +109,10 @@ end
 
 # to send BTC to particular address
 def send_to_address(prev_tx_id, vout_prev_tx, to_address, amount)
+  previous_transaction_id = prev_tx_id
+  previous_transaction_vout = vout_prev_tx
+  payee_address = to_address
   begin
-    previous_transaction_id = prev_tx_id
-    previous_transaction_vout = vout_prev_tx
-    payee_address = to_address
     transfer_amount = bitcoin_to_satoshi(amount)
     previous_transaction_hex =
     BITCOIN_RPC.getrawtransaction(previous_transaction_id)
@@ -154,9 +154,9 @@ end
 
 # to send BTC from multisig to other address
 def redem_to_address(previous_tx_id, vout_prev_tx, amount,to_address)
+  previous_transaction_id = previous_tx_id
+  previous_transaction_vout = vout_prev_tx
   begin
-    previous_transaction_id = previous_tx_id
-    previous_transaction_vout = vout_prev_tx
     transfer_amount = bitcoin_to_satoshi(amount)
     previous_transaction_hex =
     BITCOIN_RPC.getrawtransaction(previous_transaction_id)
@@ -231,10 +231,10 @@ end
 
 # to send BTC to multisig address (in old way)
 def send_to_multisig(previous_tx_id, vout_ptx, amount, *multi_sig_address)
+  # p multi_sig_address
+  previous_transaction_id = previous_tx_id
+  previous_transaction_vout = vout_ptx
   begin
-    # p multi_sig_address
-    previous_transaction_id = previous_tx_id
-    previous_transaction_vout = vout_ptx
     transfer_amount = bitcoin_to_satoshi(amount)
     payee_address_list = *multi_sig_address
     payee_pubkeys = []
