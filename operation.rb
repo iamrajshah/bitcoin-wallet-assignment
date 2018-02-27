@@ -2,17 +2,17 @@
 def help
   puts '===================================HELP Section========================'
   puts '1. listutxo - will list all the UTXO in the longest chain of blocks.'
-  puts 'cmd:\'ruby wallet.rb listutxo\''
+  puts 'cmd:"ruby wallet.rb listutxo"'
   puts '2. generatekey - will generate new address & keys.'
-  puts 'cmd:\'ruby wallet.rb generatekey\''
+  puts 'cmd:"ruby wallet.rb generatekey"'
   puts '3. listkey - will list all the addresses with their keys on console.'
-  puts 'cmd:\'ruby wallet.rb listkey\''
+  puts 'cmd:"ruby wallet.rb listkey"'
   puts '4. sendtoaddress - will send the amount(in BTC) to address.'
-  puts 'cmd:\'ruby wallet.rb sendtoaddress UTXO vout Amount  ToAddr\''
+  puts 'cmd:"ruby wallet.rb sendtoaddress UTXO vout Amount  ToAddr"'
   puts '5. sendtomultisig - will send the amount(in BTC) to multisig-address.'
-  puts 'cmd:\'ruby wallet.rb sendtomultisig UTXO vout Amount addr1...addrN\''
+  puts 'cmd:"ruby wallet.rb sendtomultisig UTXO vout Amount addr1...addrN"'
   puts '6. redemtoaddress - will send the amount(in BTC) from multisig-address.'
-  puts 'cmd:\'ruby wallet.rb redemtoaddress _UTXO(multisig) vout amount addr\''
+  puts 'cmd:"ruby wallet.rb redemtoaddress _UTXO(multisig) vout amount addr"'
   puts '======================================================================='
 end
 
@@ -32,26 +32,26 @@ def all_utxo
       all_transactions << trans_id
       transaction['vin'].each { |vin|
       next if vin['txid'].nil?
-        input_transaction = {
-          'trans_id' => vin['txid'],
-          'vout_index' => vin['vout']
-        }
-        spent_transactions << input_transaction
+      input_transaction = {
+        'trans_id' => vin['txid'],
+        'vout_index' => vin['vout']
+      }
+      spent_transactions << input_transaction
       }
         transaction['vout'].each { |vout|
         next if vout['scriptPubKey']['addresses'].nil?
-          vout['scriptPubKey']['addresses'].each { |address|
-          next unless all_addresses_in_wallet.include? address
-            wallet_transaction = {
-              'trans_id' => trans_id,
-              'block_hash' => block_details['hash'],
-              'value' => vout['value'],
-              'vout_index' => vout['n'],
-              'address' => vout['scriptPubKey']['addresses'],
-              'type' => vout['scriptPubKey']['type']
-            }
-            received_transactions << wallet_transaction
-            break
+        vout['scriptPubKey']['addresses'].each { |address|
+        next unless all_addresses_in_wallet.include? address
+        wallet_transaction = {
+          'trans_id' => trans_id,
+          'block_hash' => block_details['hash'],
+          'value' => vout['value'],
+          'vout_index' => vout['n'],
+          'address' => vout['scriptPubKey']['addresses'],
+          'type' => vout['scriptPubKey']['type']
+        }
+        received_transactions << wallet_transaction
+        break
         }
       }
     rescue => ex

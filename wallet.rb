@@ -21,7 +21,7 @@ BitcoinRPC.new('http://rpcusername:rpcpassword@127.0.0.1:18332')
 BTC = 1_000_000_00
 # mention in assignment
 FEE = 1000
-FILE_NAME = 'keys.csv'
+FILE_NAME = 'keys.csv'.freeze
 
 # entry point
 if !ARGV.empty?
@@ -31,8 +31,8 @@ if !ARGV.empty?
     help
   when 'listutxo'
     if ARGV.length > 1
-      puts 'No argument with \'listutxo\' cmd please try running'
-      puts '\'ruby wallet.rb listutxo\''
+      puts 'No argument with "listutxo" cmd please try running'
+      puts '"ruby wallet.rb listutxo"'
     else
       listallutxo = all_utxo
       if listallutxo.size > 0
@@ -49,22 +49,22 @@ if !ARGV.empty?
     end
   when 'generatekey'
     if ARGV.length > 1
-      puts 'No argument with \'generatekey\' cmd please try running'
-      puts '\'ruby wallet.rb listutxo\''
+      puts 'No argument with "generatekey" cmd please try running'
+      puts '"ruby wallet.rb listutxo"'
     else
       generate_key
     end
   when 'listkey'
     if ARGV.length > 1
-      puts 'No argument with \'listkey\' cmd please try running'
-      puts '\'ruby wallet.rb listutxo\''
+      puts 'No argument with "listkey" cmd please try running'
+      puts '"ruby wallet.rb listutxo"'
     else
       list_key
     end
   when 'sendtoaddress'
     if ARGV.length < 4
-      puts 'Invalid argument-list with \'sendtoaddress\' cmd please try running'
-      puts '\'ruby wallet.rb sendtoaddress UnspentTXID vout Amount ToAddress\''
+      puts 'Invalid argument-list with "sendtoaddress" cmd please try running'
+      puts '"ruby wallet.rb sendtoaddress UnspentTXID vout Amount ToAddress"'
     else
       check_valid_parameter_list = valid_send_to_parameter_list(false, *ARGV)
       if check_valid_parameter_list['status']
@@ -79,8 +79,8 @@ if !ARGV.empty?
     end
   when 'sendtomultisig'
     if ARGV.length < 4
-      puts 'Invalid argument-list for \'sendtomultisig\' cmd please try running'
-      puts '\'ruby wallet.rb sendtomultisig UTXO vout amount addr1...addrN\''
+      puts 'Invalid argument-list for "sendtomultisig" cmd please try running'
+      puts '"ruby wallet.rb sendtomultisig UTXO vout amount addr1...addrN"'
     else
       validate_input = valid_multi_sig_parameter_list(*ARGV)
       if validate_input['status']
@@ -91,7 +91,7 @@ if !ARGV.empty?
         new_transaction_id =
         send_to_multisig(ARGV[1], ARGV[2].to_i, ARGV[3].to_f, *address_list)
         if !new_transaction_id.nil?
-          puts 'Transaction sent successfully!' 
+          puts 'Transaction sent successfully!'
           puts "Transaction Id: #{new_transaction_id}"
         else
           puts 'Transaction failed to send'
@@ -102,8 +102,8 @@ if !ARGV.empty?
     end
   when 'redemtoaddress'
     if ARGV.length < 4
-      puts 'Invalid argument-list for \'redeemtoaddress\' cmd please try runing'
-      puts '\'ruby wallet.rb redeemtoaddress UTXO(multisig) vout amount addr\''
+      puts 'Invalid argument-list for "redeemtoaddress" cmd please try runing'
+      puts '"ruby wallet.rb redeemtoaddress UTXO(multisig) vout amount addr"'
     else
       check_valid_parameter_list = valid_send_to_parameter_list(true, *ARGV)
       if check_valid_parameter_list['status']
@@ -121,9 +121,9 @@ if !ARGV.empty?
     end
   else
     puts 'Sorry !!! You mis-spelled cmd, if you need any help try running'
-    puts '\n\'ruby wallet.rb help\''
+    puts '"ruby wallet.rb help"'
   end
 else
   puts 'Sorry !!! You forgot to send cmd, if you need any help try running'
-  puts '\n\'ruby wallet.rb help\''
+  puts '"ruby wallet.rb help"'
 end
